@@ -3,8 +3,8 @@
 寿命建模的真实业务分析小型项目。完整模拟客户、痛点、上下游、算法公式与一天工作剧本见 [BUSINESS.md](BUSINESS.md)。
 
 ## 模块与业务流程
-数据接入（JSON/CSV、字段验证、批次指纹）→ 参数化分析（异步 Python worker）→ 结果复核（指标、图形、明细、解释、批准）→ 定时分发（本地收件箱、CSV/JSON、SHA256）；另有业务总览和审计轨迹。
-三个贯穿全栈的实体：Dataset 数据批次、Job 分析任务、Report 分发计划；辅助 User、Audit、Delivery。
+换装履历（车辆/部件/交接单，按装卸车表差逐段结算部件里程，整单事务、单号幂等、迟到拒绝、成对调换）→ 数据接入（JSON/CSV、字段验证、批次指纹；换装履历可按截止时刻直接产出同构样本批次）→ 参数化分析（异步 Python worker）→ 结果复核（指标、图形、明细、解释、批准）→ 定时分发（本地收件箱、CSV/JSON、SHA256）；另有业务总览和审计轨迹。
+贯穿实体：Dataset 数据批次、Job 分析任务、Report 分发计划；换装域 Vehicle 车辆、Component 部件、SwapOrder 交接单、SwapEvent 装卸事件；辅助 User、Audit、Delivery。
 
 ## 快速启动
 ```bash
@@ -27,8 +27,8 @@ Python 3.12 / FastAPI / SQLAlchemy / NumPy / SciPy / scikit-learn；PostgreSQL 1
 后端：安装 backend/requirements.txt，设置 DATABASE_URL、REDIS_URL、JWT_SECRET、ARTIFACT_DIR 后在 backend/ 执行 `python -m migrations.initial`、`python -m scripts.seed_demo`、`uvicorn src.main:app`，另开 `python -m src.worker`。前端使用带 /api 反向代理的 Nginx，直接打开 index.html 不支持 API。
 
 ## 目录与工程约定
-backend/src/{models,schemas,services,routes,controllers,middlewares,constants,config,utils}；backend/scripts/seed_demo.py；backend/migrations/initial.py。
-frontend/src/{api,stores,types,components/common,hooks,pages,router,utils,constants}。
+backend/src/{models,schemas,services,routes,controllers,middlewares,constants,config,utils}；换装域为 models/swap.py、schemas/{fleet,swap}.py、services/{fleet,swaps,samples}.py、routes/fleet.py；backend/scripts/seed_demo.py（含 seed_fleet 演示换装履历）；backend/migrations/initial.py；领域端到端测试 backend/tests/test_swaps.py（SQLite，不依赖 Postgres/Redis）。
+frontend/src/{api,stores,types,components/common,hooks,pages,router,utils,constants}；换装页 pages/fleet.js，导航「换装履历」。
 Role 枚举：admin/analyst/viewer；JobStatus：queued/running/completed/failed。后端 backend/src/constants/enums.py，前端 frontend/src/constants/enums.js；路由权限在 middlewares/auth.py；页面按相同角色控制操作入口。
 
 ## 环境变量与 Docker
